@@ -1,14 +1,13 @@
 package com.store.ecommercebackend.controllers;
 
-import com.store.ecommercebackend.dto.UserDto;
+import com.store.ecommercebackend.dto.request.RegisterUserRequest;
+import com.store.ecommercebackend.dto.response.UserDto;
 import com.store.ecommercebackend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -32,6 +31,18 @@ public class UserController {
             return ResponseEntity.ok(user);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("User with id " + id + " doesn't exist..");
+    }
+
+    // Registering a user
+    @PostMapping
+    public ResponseEntity<UserDto> registerUser(
+            @RequestBody RegisterUserRequest request,
+            UriComponentsBuilder uriBuilder
+    ) {
+        var userDto = userService.createUser(request);
+        var uri = uriBuilder.path("/api/v1/users/{id}").buildAndExpand(userDto.getId())
+                .toUri();
+        return ResponseEntity.created(uri).body(userDto);
     }
 
 }

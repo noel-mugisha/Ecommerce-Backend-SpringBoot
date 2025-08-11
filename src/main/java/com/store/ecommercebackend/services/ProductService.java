@@ -1,6 +1,6 @@
 package com.store.ecommercebackend.services;
 
-import com.store.ecommercebackend.dto.ProductDto;
+import com.store.ecommercebackend.dto.response.ProductDto;
 import com.store.ecommercebackend.mappers.ProductMapper;
 import com.store.ecommercebackend.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +34,7 @@ public class ProductService {
                 .map(productMapper::toDto)
                 .orElse(null);
     }
+
+
 
 }

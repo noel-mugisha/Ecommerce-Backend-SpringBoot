@@ -1,6 +1,7 @@
 package com.store.ecommercebackend.mappers;
 
-import com.store.ecommercebackend.dto.UserDto;
+import com.store.ecommercebackend.dto.request.RegisterUserRequest;
+import com.store.ecommercebackend.dto.response.UserDto;
 import com.store.ecommercebackend.entities.User;
 import org.mapstruct.Mapper;
 
@@ -8,5 +9,5 @@ import org.mapstruct.Mapper;
 public interface UserMapper {
     UserDto toDto(User user);
 
-    User toEntity(UserDto userDto);
+    User toEntity(RegisterUserRequest userRequest);
 }
