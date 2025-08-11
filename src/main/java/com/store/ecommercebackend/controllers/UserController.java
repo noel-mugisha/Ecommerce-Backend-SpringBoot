@@ -1,6 +1,7 @@
 package com.store.ecommercebackend.controllers;
 
 import com.store.ecommercebackend.dto.request.RegisterUserRequest;
+import com.store.ecommercebackend.dto.request.UpdateUserRequest;
 import com.store.ecommercebackend.dto.response.UserDto;
 import com.store.ecommercebackend.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,19 @@ public class UserController {
         var uri = uriBuilder.path("/api/v1/users/{id}").buildAndExpand(userDto.getId())
                 .toUri();
         return ResponseEntity.created(uri).body(userDto);
+    }
+
+    // Updating user resources
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDto> updateUserResources (
+            @PathVariable Long id,
+            @RequestBody UpdateUserRequest request
+    ) {
+        var updatedUserDto = userService.updateUser(id, request);
+        if (updatedUserDto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updatedUserDto);
     }
 
 }
