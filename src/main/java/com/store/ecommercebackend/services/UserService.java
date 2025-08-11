@@ -1,5 +1,6 @@
 package com.store.ecommercebackend.services;
 
+import com.store.ecommercebackend.dto.request.ChangePasswordRequest;
 import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.request.UpdateUserRequest;
 import com.store.ecommercebackend.dto.response.UserDto;
@@ -37,7 +38,7 @@ public class UserService {
     }
 
     // Updating user resources
-    public UserDto updateUser (Long id, UpdateUserRequest request) {
+    public UserDto updateUser(Long id, UpdateUserRequest request) {
         var user = userRepository.findById(id).orElse(null);
         if (user != null) {
             userMapper.updateUser(request, user);
@@ -45,6 +46,16 @@ public class UserService {
             return userMapper.toDto(user);
         }
         return null;
+    }
+
+    // Deleting a user
+    public boolean deleteUser (Long id) {
+        var user = userRepository.findById(id)
+                .orElse(null);
+        if (user == null)
+            return false;
+        userRepository.delete(user);
+        return true;
     }
 
 }
