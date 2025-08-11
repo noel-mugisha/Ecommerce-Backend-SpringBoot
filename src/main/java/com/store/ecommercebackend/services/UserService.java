@@ -20,4 +20,11 @@ public class UserService {
                 .map(userMapper::toDto)
                 .toList();
     }
+
+    // Getting a single user
+    public UserDto findUserById(Long id) {
+        return userRepository.findById(id)
+                .map(userMapper::toDto)
+                .orElse(null);
+    }
 }

@@ -1,10 +1,10 @@
 package com.store.ecommercebackend.dto;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Builder
-@Getter
+@AllArgsConstructor
+@Data
 public class UserDto {
     private Long id;
     private String name;
