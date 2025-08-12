@@ -1,6 +1,8 @@
 package com.store.ecommercebackend.services;
 
+import com.store.ecommercebackend.dto.request.ProductRequest;
 import com.store.ecommercebackend.dto.response.ProductDto;
+import com.store.ecommercebackend.entities.Category;
 import com.store.ecommercebackend.mappers.ProductMapper;
 import com.store.ecommercebackend.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,32 @@ public class ProductService {
                 .orElse(null);
     }
 
+    // Creating a product
+    public ProductDto createProduct(ProductRequest request, Category category) {
+        var product = productMapper.toEntity(request);
+        product.setCategory(category);
+        productRepository.save(product);
+        return productMapper.toDto(product);
+    }
 
+    // Updating a product
+    public ProductDto updateProduct(Long id, ProductRequest request, Category category) {
+        var product = productRepository.findById(id).orElse(null);
+        if (product == null)
+            return null;
+        productMapper.updateProduct(product, request);
+        product.setCategory(category);
+        productRepository.save(product);
+        return productMapper.toDto(product);
+    }
+
+    // Deleting a product
+    public boolean deleteProduct (Long id) {
+        var product = productRepository.findById(id).orElse(null);
+        if (product == null)
+            return false;
+        productRepository.delete(product);
+        return true;
+    }
 
 }
