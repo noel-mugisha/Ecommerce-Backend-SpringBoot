@@ -4,12 +4,14 @@ import com.store.ecommercebackend.dto.request.ChangePasswordRequest;
 import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.request.UpdateUserRequest;
 import com.store.ecommercebackend.dto.response.UserDto;
+import com.store.ecommercebackend.entities.User;
 import com.store.ecommercebackend.mappers.UserMapper;
 import com.store.ecommercebackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,10 +27,8 @@ public class UserService {
     }
 
     // Getting a single user
-    public UserDto findUserById(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::toDto)
-                .orElse(null);
+    public Optional<User> findUserById(Long id) {
+        return userRepository.findById(id);
     }
 
     // Registering a user

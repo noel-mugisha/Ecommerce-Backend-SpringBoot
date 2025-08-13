@@ -4,8 +4,12 @@ import com.store.ecommercebackend.dto.request.ChangePasswordRequest;
 import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.request.UpdateUserRequest;
 import com.store.ecommercebackend.dto.response.UserDto;
+import com.store.ecommercebackend.entities.User;
+import com.store.ecommercebackend.exceptions.UserNotFoundException;
+import com.store.ecommercebackend.mappers.UserMapper;
 import com.store.ecommercebackend.repositories.UserRepository;
 import com.store.ecommercebackend.services.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     // Getting all Users
     @GetMapping
@@ -29,18 +34,16 @@ public class UserController {
 
     // Getting a single user
     @GetMapping("/{id}")
-    public ResponseEntity<?> getSingleUser(@PathVariable Long id) {
-        var user = userService.findUserById(id);
-        if (user != null)
-            return ResponseEntity.ok(user);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("User with id " + id + " doesn't exist..");
+    public ResponseEntity<UserDto> getSingleUser(@PathVariable Long id) {
+        var user = userService.findUserById(id)
+                .orElseThrow( () -> new UserNotFoundException("User with id: " + id + " not found!.."));
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
 
     // Registering a user
     @PostMapping
     public ResponseEntity<UserDto> registerUser(
-            @RequestBody RegisterUserRequest request,
+            @Valid @RequestBody RegisterUserRequest request,
             UriComponentsBuilder uriBuilder
     ) {
         var userDto = userService.createUser(request);
