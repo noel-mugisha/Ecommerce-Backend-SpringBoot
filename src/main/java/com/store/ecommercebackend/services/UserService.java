@@ -1,10 +1,10 @@
 package com.store.ecommercebackend.services;
 
-import com.store.ecommercebackend.dto.request.ChangePasswordRequest;
 import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.request.UpdateUserRequest;
 import com.store.ecommercebackend.dto.response.UserDto;
 import com.store.ecommercebackend.entities.User;
+import com.store.ecommercebackend.exceptions.UserNotFoundException;
 import com.store.ecommercebackend.mappers.UserMapper;
 import com.store.ecommercebackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     // Get all users
-    public List<UserDto> getAllUsers () {
+    public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(userMapper::toDto)
                 .toList();
@@ -38,24 +38,17 @@ public class UserService {
     }
 
     // Updating user resources
-    public UserDto updateUser(Long id, UpdateUserRequest request) {
-        var user = userRepository.findById(id).orElse(null);
-        if (user != null) {
-            userMapper.updateUser(request, user);
-            userRepository.save(user);
-            return userMapper.toDto(user);
-        }
-        return null;
+    public UserDto updateUser(UpdateUserRequest request, User existingUser) {
+        userMapper.updateUser(request, existingUser);
+        userRepository.save(existingUser);
+        return userMapper.toDto(existingUser);
     }
 
     // Deleting a user
-    public boolean deleteUser (Long id) {
+    public void deleteUser(Long id) {
         var user = userRepository.findById(id)
-                .orElse(null);
-        if (user == null)
-            return false;
+                .orElseThrow(() -> new UserNotFoundException("User with id: " + id + " not found!.."));
         userRepository.delete(user);
-        return true;
     }
 
 }

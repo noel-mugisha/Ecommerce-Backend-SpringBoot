@@ -2,6 +2,9 @@ package com.store.ecommercebackend.controllers;
 
 import com.store.ecommercebackend.dto.request.ProductRequest;
 import com.store.ecommercebackend.dto.response.ProductDto;
+import com.store.ecommercebackend.exceptions.CategoryNotFoundException;
+import com.store.ecommercebackend.exceptions.ProductNotFoundException;
+import com.store.ecommercebackend.mappers.ProductMapper;
 import com.store.ecommercebackend.repositories.CategoryRepository;
 import com.store.ecommercebackend.services.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
+    private final ProductMapper productMapper;
 
     // Get all products
     @GetMapping()
@@ -33,54 +37,43 @@ public class ProductController {
 
     // Get a single product
     @GetMapping("{id}")
-    public ResponseEntity<?> getProductById (@PathVariable Long id) {
-        var product = productService.getProductById(id);
-        if (product != null)
-            return ResponseEntity.ok(product);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Product with id " + id + " not found..." );
+    public ResponseEntity<?> getProductById(@PathVariable Long id) {
+        var product = productService.getProductById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product with id: " + id + " not found!.."));
+        return ResponseEntity.ok(productMapper.toDto(product));
     }
 
     // Create a product
     @PostMapping
-    public ResponseEntity<ProductDto> addProduct (
+    public ResponseEntity<ProductDto> addProduct(
             @RequestBody ProductRequest request,
-            UriComponentsBuilder  uriBuilder
+            UriComponentsBuilder uriBuilder
     ) {
-        var category = categoryRepository.findById(request.getCategoryId()).orElse(null);
-        if (category == null)
-            return ResponseEntity.badRequest().build();
-
+        var id = request.getCategoryId();
+        var category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException("Category with id: " + id + " not found!.."));
         var productDto = productService.createProduct(request, category);
         var uri = uriBuilder.path("/api/v1/products/{id}")
                 .buildAndExpand(productDto.getId()).toUri();
-
         return ResponseEntity.created(uri).body(productDto);
     }
 
     // Update a product
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDto> updateProduct (
+    public ResponseEntity<ProductDto> updateProduct(
             @PathVariable Long id,
             @RequestBody ProductRequest request
     ) {
-        var category = categoryRepository.findById(request.getCategoryId()).orElse(null);
-        if (category == null)
-            return ResponseEntity.badRequest().build();
-
+        var category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new CategoryNotFoundException("Category with id: " + id + " not found!.."));
         var productDto = productService.updateProduct(id, request, category);
-        if (productDto == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-
         return ResponseEntity.ok(productDto);
     }
 
     // Delete a user
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct (@PathVariable Long id) {
-        var isDeleted = productService.deleteProduct(id);
-        if (!isDeleted)
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

@@ -44,10 +44,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, error);
     }
 
-    // Handles every other errors (Internal server errors)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> internalServerError (Exception exception) {
-        var error = HttpStatus.INTERNAL_SERVER_ERROR;
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> productNotFound (
+            ProductNotFoundException exception
+    ) {
+        var error = HttpStatus.NOT_FOUND;
         var errorResponse = ApiErrorResponse.builder()
                 .statusCode(error.value())
                 .errorReason(error.getReasonPhrase())
@@ -55,4 +56,18 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(errorResponse, error);
     }
+
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> categoryNotFound (
+            CategoryNotFoundException exception
+    ) {
+        var error = HttpStatus.NOT_FOUND;
+        var errorResponse = ApiErrorResponse.builder()
+                .statusCode(error.value())
+                .errorReason(error.getReasonPhrase())
+                .message(exception.getMessage())
+                .build();
+        return new ResponseEntity<>(errorResponse, error);
+    }
+
 }

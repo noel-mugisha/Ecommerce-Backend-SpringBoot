@@ -56,22 +56,20 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateUserResources(
             @PathVariable Long id,
-            @RequestBody UpdateUserRequest request
+            @Valid @RequestBody UpdateUserRequest request
     ) {
-        var updatedUserDto = userService.updateUser(id, request);
-        if (updatedUserDto == null) {
-            return ResponseEntity.notFound().build();
-        }
+        var existingUser = userService.findUserById(id)
+                .orElseThrow( () -> new UserNotFoundException("User with id: " + id + " not found!.."));
+        var updatedUserDto = userService.updateUser(request, existingUser);
+
         return ResponseEntity.ok(updatedUserDto);
     }
 
     // Deleting a user
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        var isDeleted = userService.deleteUser(id);
-        if (isDeleted)
-            return ResponseEntity.noContent().build();
-        return ResponseEntity.notFound().build();
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 
     // Updating user-password
@@ -80,11 +78,8 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody ChangePasswordRequest request
     ) {
-        var user = userRepository.findById(id)
-                .orElse(null);
-        if (user == null)
-            return ResponseEntity.notFound().build();
-        else if (!user.getPassword().equals(request.getOldPassword()))
+        var user = userRepository.findById(id).orElseThrow( () -> new UserNotFoundException("User with id: " + id + " not found!.."));
+        if (!user.getPassword().equals(request.getOldPassword()))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         else {
             user.setPassword(request.getNewPassword());

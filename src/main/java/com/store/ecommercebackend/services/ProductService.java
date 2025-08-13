@@ -3,12 +3,15 @@ package com.store.ecommercebackend.services;
 import com.store.ecommercebackend.dto.request.ProductRequest;
 import com.store.ecommercebackend.dto.response.ProductDto;
 import com.store.ecommercebackend.entities.Category;
+import com.store.ecommercebackend.entities.Product;
+import com.store.ecommercebackend.exceptions.ProductNotFoundException;
 import com.store.ecommercebackend.mappers.ProductMapper;
 import com.store.ecommercebackend.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,10 +34,8 @@ public class ProductService {
     }
 
     // Get a single product
-    public ProductDto getProductById(Long productId) {
-        return productRepository.findById(productId)
-                .map(productMapper::toDto)
-                .orElse(null);
+    public Optional<Product> getProductById(Long productId) {
+        return productRepository.findById(productId);
     }
 
     // Creating a product
@@ -47,9 +48,8 @@ public class ProductService {
 
     // Updating a product
     public ProductDto updateProduct(Long id, ProductRequest request, Category category) {
-        var product = productRepository.findById(id).orElse(null);
-        if (product == null)
-            return null;
+        var product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product with id: " + id + " not found!.."));
         productMapper.updateProduct(product, request);
         product.setCategory(category);
         productRepository.save(product);
@@ -57,12 +57,10 @@ public class ProductService {
     }
 
     // Deleting a product
-    public boolean deleteProduct (Long id) {
-        var product = productRepository.findById(id).orElse(null);
-        if (product == null)
-            return false;
+    public void deleteProduct (Long id) {
+        var product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product with id: " + id + " not found!.."));
         productRepository.delete(product);
-        return true;
     }
 
 }
