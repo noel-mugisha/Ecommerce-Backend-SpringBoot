@@ -4,7 +4,6 @@ import com.store.ecommercebackend.dto.request.ChangePasswordRequest;
 import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.request.UpdateUserRequest;
 import com.store.ecommercebackend.dto.response.UserDto;
-import com.store.ecommercebackend.entities.User;
 import com.store.ecommercebackend.exceptions.DuplicateEmailException;
 import com.store.ecommercebackend.exceptions.UserNotFoundException;
 import com.store.ecommercebackend.mappers.UserMapper;
@@ -37,7 +36,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getSingleUser(@PathVariable Long id) {
         var user = userService.findUserById(id)
-                .orElseThrow( () -> new UserNotFoundException("User with id: " + id + " not found!.."));
+                .orElseThrow(() -> new UserNotFoundException("User with id: " + id + " not found!.."));
         return ResponseEntity.ok(userMapper.toDto(user));
     }
 
@@ -63,7 +62,7 @@ public class UserController {
             @Valid @RequestBody UpdateUserRequest request
     ) {
         var existingUser = userService.findUserById(id)
-                .orElseThrow( () -> new UserNotFoundException("User with id: " + id + " not found!.."));
+                .orElseThrow(() -> new UserNotFoundException("User with id: " + id + " not found!.."));
         var updatedUserDto = userService.updateUser(request, existingUser);
 
         return ResponseEntity.ok(updatedUserDto);
@@ -82,7 +81,7 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody ChangePasswordRequest request
     ) {
-        var user = userRepository.findById(id).orElseThrow( () -> new UserNotFoundException("User with id: " + id + " not found!.."));
+        var user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with id: " + id + " not found!.."));
         if (!user.getPassword().equals(request.getOldPassword()))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         else {
