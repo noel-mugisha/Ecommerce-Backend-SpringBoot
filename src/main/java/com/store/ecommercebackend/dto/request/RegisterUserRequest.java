@@ -1,5 +1,6 @@
 package com.store.ecommercebackend.dto.request;
 
+import com.store.ecommercebackend.validation.LowerCase;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,6 +17,7 @@ public class RegisterUserRequest {
 
     @NotBlank(message = "Your email is required")
     @Email(message = "Email must be valid")
+    @LowerCase(message = "Email must be lowercase")
     private String email;
 
     @NotBlank(message = "Password is required")

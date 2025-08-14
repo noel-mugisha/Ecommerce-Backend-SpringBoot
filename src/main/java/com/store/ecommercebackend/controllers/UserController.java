@@ -5,6 +5,7 @@ import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.request.UpdateUserRequest;
 import com.store.ecommercebackend.dto.response.UserDto;
 import com.store.ecommercebackend.entities.User;
+import com.store.ecommercebackend.exceptions.DuplicateEmailException;
 import com.store.ecommercebackend.exceptions.UserNotFoundException;
 import com.store.ecommercebackend.mappers.UserMapper;
 import com.store.ecommercebackend.repositories.UserRepository;
@@ -46,6 +47,9 @@ public class UserController {
             @Valid @RequestBody RegisterUserRequest request,
             UriComponentsBuilder uriBuilder
     ) {
+        if (userRepository.existsByEmail(request.getEmail()))
+            throw new DuplicateEmailException("Email is already registered!..");
+
         var userDto = userService.createUser(request);
         var uri = uriBuilder.path("/api/v1/users/{id}").buildAndExpand(userDto.getId())
                 .toUri();

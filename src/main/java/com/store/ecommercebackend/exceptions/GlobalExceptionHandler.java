@@ -70,4 +70,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, error);
     }
 
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<ApiErrorResponse> duplicateEmail (
+            DuplicateEmailException exception
+    ) {
+        var error = HttpStatus.BAD_REQUEST;
+        var errorResponse = ApiErrorResponse.builder()
+                .statusCode(error.value())
+                .errorReason(error.getReasonPhrase())
+                .message(exception.getMessage())
+                .build();
+        return new ResponseEntity<>(errorResponse, error);
+    }
+
 }
