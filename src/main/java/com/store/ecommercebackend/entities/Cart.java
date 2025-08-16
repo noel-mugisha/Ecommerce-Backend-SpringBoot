@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -26,4 +27,11 @@ public class Cart {
     @JoinColumn(name = "cart_id")
     private Set<CartItem> cartItems = new LinkedHashSet<>();
 
+    public BigDecimal getTotalPrice() {
+        var total = BigDecimal.ZERO;
+        for (CartItem item : cartItems) {
+            total = total.add(item.getTotalPrice());
+        }
+        return total;
+    }
 }

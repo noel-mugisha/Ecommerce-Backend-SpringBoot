@@ -1,6 +1,7 @@
 package com.store.ecommercebackend.services;
 
 import com.store.ecommercebackend.dto.request.AddToCartRequest;
+import com.store.ecommercebackend.dto.response.CartDto;
 import com.store.ecommercebackend.dto.response.CartItemDto;
 import com.store.ecommercebackend.entities.Cart;
 import com.store.ecommercebackend.entities.CartItem;
@@ -23,34 +24,45 @@ public class CartService {
     private final CartMapper cartMapper;
 
     // Adding a cart in the DB
-    public Cart saveCart (Cart cart) {
+    public Cart saveCart(Cart cart) {
         return cartRepository.save(cart);
     }
 
     // Adding a cart item to the cart
     public CartItemDto addItemToCart(UUID cartId, AddToCartRequest request) {
-        var cart = cartRepository.findById(cartId).orElseThrow(() ->
-                new ResourceNotFoundException("Cart doesn't exist...")
-        );
+        var cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart doesn't exist"));
+
         var product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new BadRequestException("The product you are trying to add doesn't exist"));
+                .orElseThrow(() -> new BadRequestException("Product doesn't exist"));
 
         var cartItem = cart.getCartItems().stream()
                 .filter(item -> item.getProduct().getId().equals(product.getId()))
                 .findFirst()
-                .orElse(null);
-        if (cartItem != null)
-            cartItem.setQuantity(cartItem.getQuantity()+1);
-        else {
-            var newCartItem = CartItem.builder()
-                    .quantity(1)
-                    .cart(cart)
-                    .product(product)
-                    .build();
-            cart.getCartItems().add(newCartItem);
-        }
+                .orElseGet(() -> {
+                    CartItem newItem = new CartItem();
+                    newItem.setQuantity(0); // Will be incremented below
+                    newItem.setProduct(product);
+                    newItem.setCart(cart);
+                    cart.getCartItems().add(newItem);
+                    return newItem;
+                });
 
-        cartRepository.save(cart);
-        return cartMapper.toDto(cartItem);
+        cartItem.setQuantity(cartItem.getQuantity() + 1);
+        Cart managedCart = cartRepository.save(cart);
+        CartItem managedCartItem = managedCart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .findFirst()
+                .orElseThrow();
+
+        return cartMapper.toDto(managedCartItem);
     }
+
+    // Find cart by id
+    public CartDto getCartById(UUID id) {
+        var cart = cartRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart with id:" +id+ " not found!.." ));
+        return cartMapper.toDto(cart);
+    }
+
 }

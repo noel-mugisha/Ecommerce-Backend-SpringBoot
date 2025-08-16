@@ -22,7 +22,7 @@ public class CartController {
 
     // Creating a cart
     @PostMapping
-    public ResponseEntity<CartDto> addCart (
+    public ResponseEntity<CartDto> addCart(
             UriComponentsBuilder uriBuilder
     ) {
         var cart = new Cart();
@@ -34,7 +34,7 @@ public class CartController {
 
     // Adding product to cart
     @PostMapping("/{cartId}/items")
-    public ResponseEntity<?> addToCart (
+    public ResponseEntity<?> addToCart(
             @PathVariable UUID cartId,
             @RequestBody AddToCartRequest request,
             UriComponentsBuilder uriBuilder
@@ -45,4 +45,10 @@ public class CartController {
         return ResponseEntity.created(uri).body(cartItemDto);
     }
 
+    // Fetching a single cart
+    @GetMapping("/{cartId}")
+    public ResponseEntity<CartDto> getSingleCart (@PathVariable UUID cartId) {
+        var cartDto = cartService.getCartById(cartId);
+        return ResponseEntity.ok(cartDto);
+    }
 }
