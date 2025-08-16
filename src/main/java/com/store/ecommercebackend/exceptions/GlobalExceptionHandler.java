@@ -14,73 +14,72 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private ResponseEntity<ApiErrorResponse> getErrorResponse(
+            HttpStatus status, RuntimeException exception
+    ) {
+        var errorResponse = ApiErrorResponse.builder()
+                .statusCode(status.value())
+                .errorReason(status.getReasonPhrase())
+                .message(exception.getMessage())
+                .build();
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiErrorResponse> validationErrors (
+    public ResponseEntity<ApiErrorResponse> validationErrors(
             MethodArgumentNotValidException exception
     ) {
-        var error = HttpStatus.BAD_REQUEST;
+        var status = HttpStatus.BAD_REQUEST;
         Map<String, String> errorMessages = new HashMap<>();
 
         for (FieldError fieldError : exception.getBindingResult().getFieldErrors())
             errorMessages.put(fieldError.getField(), fieldError.getDefaultMessage());
         var errorResponse = ApiErrorResponse.builder()
-                .statusCode(error.value())
-                .errorReason(error.getReasonPhrase())
+                .statusCode(status.value())
+                .errorReason(status.getReasonPhrase())
                 .message(errorMessages)
                 .build();
-        return new ResponseEntity<>(errorResponse, error);
+        return new ResponseEntity<>(errorResponse, status);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> userNotFound (
+    public ResponseEntity<ApiErrorResponse> userNotFound(
             UserNotFoundException exception
     ) {
-        var error = HttpStatus.NOT_FOUND;
-        var errorResponse = ApiErrorResponse.builder()
-                .statusCode(error.value())
-                .errorReason(error.getReasonPhrase())
-                .message(exception.getMessage())
-                .build();
-        return new ResponseEntity<>(errorResponse, error);
+        return getErrorResponse(HttpStatus.NOT_FOUND, exception);
     }
 
     @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> productNotFound (
+    public ResponseEntity<ApiErrorResponse> productNotFound(
             ProductNotFoundException exception
     ) {
-        var error = HttpStatus.NOT_FOUND;
-        var errorResponse = ApiErrorResponse.builder()
-                .statusCode(error.value())
-                .errorReason(error.getReasonPhrase())
-                .message(exception.getMessage())
-                .build();
-        return new ResponseEntity<>(errorResponse, error);
+        return getErrorResponse(HttpStatus.NOT_FOUND, exception);
     }
 
     @ExceptionHandler(CategoryNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> categoryNotFound (
+    public ResponseEntity<ApiErrorResponse> categoryNotFound(
             CategoryNotFoundException exception
     ) {
-        var error = HttpStatus.NOT_FOUND;
-        var errorResponse = ApiErrorResponse.builder()
-                .statusCode(error.value())
-                .errorReason(error.getReasonPhrase())
-                .message(exception.getMessage())
-                .build();
-        return new ResponseEntity<>(errorResponse, error);
+        return getErrorResponse(HttpStatus.NOT_FOUND, exception);
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
-    public ResponseEntity<ApiErrorResponse> duplicateEmail (
+    public ResponseEntity<ApiErrorResponse> duplicateEmail(
             DuplicateEmailException exception
     ) {
-        var error = HttpStatus.BAD_REQUEST;
-        var errorResponse = ApiErrorResponse.builder()
-                .statusCode(error.value())
-                .errorReason(error.getReasonPhrase())
-                .message(exception.getMessage())
-                .build();
-        return new ResponseEntity<>(errorResponse, error);
+        return getErrorResponse(HttpStatus.BAD_REQUEST, exception);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> resourceNotFound(
+            ResourceNotFoundException exception
+    ) {
+        return getErrorResponse(HttpStatus.NOT_FOUND, exception);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiErrorResponse> badRequest(BadRequestException exception) {
+        return getErrorResponse(HttpStatus.BAD_REQUEST, exception);
     }
 
 }

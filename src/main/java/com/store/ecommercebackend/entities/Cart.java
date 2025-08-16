@@ -22,7 +22,7 @@ public class Cart {
     @Column(name = "date_created", insertable = false, updatable = false)
     private LocalDate dateCreated;
 
-    @OneToMany()
+    @OneToMany(cascade = CascadeType.MERGE)
     @JoinColumn(name = "cart_id")
     private Set<CartItem> cartItems = new LinkedHashSet<>();
 

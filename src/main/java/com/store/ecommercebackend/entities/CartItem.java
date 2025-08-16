@@ -1,13 +1,17 @@
 package com.store.ecommercebackend.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "cart_items")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,5 +28,9 @@ public class CartItem {
 
     @Column(name = "quantity")
     private Integer quantity;
+
+    public BigDecimal getTotalPrice () {
+        return product.getPrice().multiply(BigDecimal.valueOf(quantity));
+    }
 
 }
