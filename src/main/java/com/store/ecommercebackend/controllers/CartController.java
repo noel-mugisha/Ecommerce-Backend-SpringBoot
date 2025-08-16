@@ -1,10 +1,13 @@
 package com.store.ecommercebackend.controllers;
 
 import com.store.ecommercebackend.dto.request.AddToCartRequest;
+import com.store.ecommercebackend.dto.request.UpdateCartItemRequest;
 import com.store.ecommercebackend.dto.response.CartDto;
+import com.store.ecommercebackend.dto.response.CartItemDto;
 import com.store.ecommercebackend.entities.Cart;
 import com.store.ecommercebackend.mappers.CartMapper;
 import com.store.ecommercebackend.services.CartService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,8 +50,19 @@ public class CartController {
 
     // Fetching a single cart
     @GetMapping("/{cartId}")
-    public ResponseEntity<CartDto> getSingleCart (@PathVariable UUID cartId) {
+    public ResponseEntity<CartDto> getSingleCart(@PathVariable UUID cartId) {
         var cartDto = cartService.getCartById(cartId);
         return ResponseEntity.ok(cartDto);
+    }
+
+    // Updating cartItem
+    @PutMapping("/{cartId}/items/{productId}")
+    public ResponseEntity<CartItemDto> updateCartItem (
+            @PathVariable UUID cartId,
+            @PathVariable Long productId,
+            @Valid @RequestBody UpdateCartItemRequest request
+    ) {
+        var cartItemDto = cartService.updateCartItem(cartId, productId, request);
+        return ResponseEntity.ok(cartItemDto);
     }
 }

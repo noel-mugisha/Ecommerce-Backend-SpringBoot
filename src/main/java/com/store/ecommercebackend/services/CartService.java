@@ -1,11 +1,13 @@
 package com.store.ecommercebackend.services;
 
 import com.store.ecommercebackend.dto.request.AddToCartRequest;
+import com.store.ecommercebackend.dto.request.UpdateCartItemRequest;
 import com.store.ecommercebackend.dto.response.CartDto;
 import com.store.ecommercebackend.dto.response.CartItemDto;
 import com.store.ecommercebackend.entities.Cart;
 import com.store.ecommercebackend.entities.CartItem;
 import com.store.ecommercebackend.exceptions.BadRequestException;
+import com.store.ecommercebackend.exceptions.ProductNotFoundException;
 import com.store.ecommercebackend.exceptions.ResourceNotFoundException;
 import com.store.ecommercebackend.mappers.CartMapper;
 import com.store.ecommercebackend.repositories.CartRepository;
@@ -65,4 +67,19 @@ public class CartService {
         return cartMapper.toDto(cart);
     }
 
+    // Updating cart item
+    public CartItemDto updateCartItem(UUID cartId, Long productId, UpdateCartItemRequest request) {
+        var cart = cartRepository.findById(cartId).orElseThrow(
+                () -> new ResourceNotFoundException("Cart with the above id doesn't exist")
+        );
+
+        var cartItem = cart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst()
+                .orElseThrow(() -> new ProductNotFoundException("Product with id:" + productId + " not found!.."));
+        cartItem.setQuantity(request.getQuantity());
+
+        cartRepository.save(cart);
+        return cartMapper.toDto(cartItem);
+    }
 }
