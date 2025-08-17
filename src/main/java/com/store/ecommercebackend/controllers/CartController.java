@@ -57,7 +57,7 @@ public class CartController {
 
     // Updating cartItem
     @PutMapping("/{cartId}/items/{productId}")
-    public ResponseEntity<CartItemDto> updateCartItem (
+    public ResponseEntity<CartItemDto> updateCartItem(
             @PathVariable UUID cartId,
             @PathVariable Long productId,
             @Valid @RequestBody UpdateCartItemRequest request
@@ -68,7 +68,7 @@ public class CartController {
 
     // Deleting a cart item
     @DeleteMapping("/{cartId}/items/{productId}")
-    public ResponseEntity<Void> deleteItem (
+    public ResponseEntity<Void> deleteItem(
             @PathVariable UUID cartId,
             @PathVariable Long productId
     ) {
@@ -78,7 +78,7 @@ public class CartController {
 
     // Clear the cart, we are not deleting the cart
     @DeleteMapping("/{cartId}/items")
-    public ResponseEntity<Void> clearCart (@PathVariable UUID cartId) {
+    public ResponseEntity<Void> clearCart(@PathVariable UUID cartId) {
         cartService.clearCart(cartId);
         return ResponseEntity.noContent().build();
     }

@@ -7,7 +7,6 @@ import com.store.ecommercebackend.dto.response.CartItemDto;
 import com.store.ecommercebackend.entities.Cart;
 import com.store.ecommercebackend.entities.CartItem;
 import com.store.ecommercebackend.exceptions.BadRequestException;
-import com.store.ecommercebackend.exceptions.ProductNotFoundException;
 import com.store.ecommercebackend.exceptions.ResourceNotFoundException;
 import com.store.ecommercebackend.mappers.CartMapper;
 import com.store.ecommercebackend.repositories.CartRepository;
@@ -63,7 +62,7 @@ public class CartService {
     // Find cart by id
     public CartDto getCartById(UUID id) {
         var cart = cartRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart with id:" +id+ " not found!.." ));
+                .orElseThrow(() -> new ResourceNotFoundException("Cart with id:" + id + " not found!.."));
         return cartMapper.toDto(cart);
     }
 
@@ -81,7 +80,7 @@ public class CartService {
     }
 
     // Removing a cart item
-    public void deleteCartItem (UUID cartId, Long productId) {
+    public void deleteCartItem(UUID cartId, Long productId) {
         var cart = cartRepository.findById(cartId).orElseThrow(
                 () -> new ResourceNotFoundException("Cart with the above id doesn't exist")
         );
