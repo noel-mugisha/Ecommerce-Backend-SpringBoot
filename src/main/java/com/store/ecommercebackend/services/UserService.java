@@ -1,6 +1,5 @@
 package com.store.ecommercebackend.services;
 
-import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.request.UpdateUserRequest;
 import com.store.ecommercebackend.dto.response.UserDto;
 import com.store.ecommercebackend.entities.User;
@@ -29,12 +28,6 @@ public class UserService {
     // Getting a single user
     public Optional<User> findUserById(Long id) {
         return userRepository.findById(id);
-    }
-
-    // Registering a user
-    public UserDto createUser(RegisterUserRequest user) {
-        var savedUser = userRepository.save(userMapper.toEntity(user));
-        return userMapper.toDto(savedUser);
     }
 
     // Updating user resources

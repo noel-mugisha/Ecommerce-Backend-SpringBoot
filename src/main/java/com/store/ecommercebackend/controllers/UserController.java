@@ -1,10 +1,8 @@
 package com.store.ecommercebackend.controllers;
 
 import com.store.ecommercebackend.dto.request.ChangePasswordRequest;
-import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.request.UpdateUserRequest;
 import com.store.ecommercebackend.dto.response.UserDto;
-import com.store.ecommercebackend.exceptions.DuplicateEmailException;
 import com.store.ecommercebackend.exceptions.UserNotFoundException;
 import com.store.ecommercebackend.mappers.UserMapper;
 import com.store.ecommercebackend.repositories.UserRepository;
@@ -14,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -38,21 +35,6 @@ public class UserController {
         var user = userService.findUserById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id: " + id + " not found!.."));
         return ResponseEntity.ok(userMapper.toDto(user));
-    }
-
-    // Registering a user
-    @PostMapping
-    public ResponseEntity<UserDto> registerUser(
-            @Valid @RequestBody RegisterUserRequest request,
-            UriComponentsBuilder uriBuilder
-    ) {
-        if (userRepository.existsByEmail(request.getEmail()))
-            throw new DuplicateEmailException("Email is already registered!..");
-
-        var userDto = userService.createUser(request);
-        var uri = uriBuilder.path("/api/v1/users/{id}").buildAndExpand(userDto.getId())
-                .toUri();
-        return ResponseEntity.created(uri).body(userDto);
     }
 
     // Updating user resources
