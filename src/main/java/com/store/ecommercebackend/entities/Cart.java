@@ -1,5 +1,6 @@
 package com.store.ecommercebackend.entities;
 
+import com.store.ecommercebackend.exceptions.ProductNotFoundException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,8 +24,7 @@ public class Cart {
     @Column(name = "date_created", insertable = false, updatable = false)
     private LocalDate dateCreated;
 
-    @OneToMany(cascade = CascadeType.MERGE)
-    @JoinColumn(name = "cart_id")
+    @OneToMany(cascade = CascadeType.MERGE, orphanRemoval = true, mappedBy = "cart")
     private Set<CartItem> cartItems = new LinkedHashSet<>();
 
     public BigDecimal getTotalPrice() {
@@ -33,5 +33,16 @@ public class Cart {
             total = total.add(item.getTotalPrice());
         }
         return total;
+    }
+
+    public CartItem getCartItem(Long id) {
+        return this.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new ProductNotFoundException("Product with id:" + id + " not found!.."));
+    }
+
+    public void clearCartItems () {
+        cartItems.clear();
     }
 }

@@ -72,14 +72,30 @@ public class CartService {
         var cart = cartRepository.findById(cartId).orElseThrow(
                 () -> new ResourceNotFoundException("Cart with the above id doesn't exist")
         );
+        var cartItem = cart.getCartItem(productId);
 
-        var cartItem = cart.getCartItems().stream()
-                .filter(item -> item.getProduct().getId().equals(productId))
-                .findFirst()
-                .orElseThrow(() -> new ProductNotFoundException("Product with id:" + productId + " not found!.."));
         cartItem.setQuantity(request.getQuantity());
 
         cartRepository.save(cart);
         return cartMapper.toDto(cartItem);
+    }
+
+    // Removing a cart item
+    public void deleteCartItem (UUID cartId, Long productId) {
+        var cart = cartRepository.findById(cartId).orElseThrow(
+                () -> new ResourceNotFoundException("Cart with the above id doesn't exist")
+        );
+        var cartItem = cart.getCartItem(productId);
+        cart.getCartItems().remove(cartItem);
+        cartRepository.save(cart);
+    }
+
+
+    public void clearCart(UUID cartId) {
+        var cart = cartRepository.findById(cartId).orElseThrow(
+                () -> new ResourceNotFoundException("Cart with the above id doesn't exist")
+        );
+        cart.clearCartItems();
+        cartRepository.save(cart);
     }
 }
