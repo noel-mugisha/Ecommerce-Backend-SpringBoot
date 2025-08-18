@@ -2,7 +2,8 @@ package com.store.ecommercebackend.services;
 
 import com.store.ecommercebackend.dto.request.LoginUserRequest;
 import com.store.ecommercebackend.dto.request.RegisterUserRequest;
-import com.store.ecommercebackend.dto.response.UserDto;
+import com.store.ecommercebackend.dto.response.AuthResponse;
+import com.store.ecommercebackend.entities.User;
 import com.store.ecommercebackend.mappers.UserMapper;
 import com.store.ecommercebackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +20,19 @@ public class AuthService {
     private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public void authenticate(LoginUserRequest request) {
+    public AuthResponse authenticate(LoginUserRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
+        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        String token = jwtService.generateToken(user);
+        return new AuthResponse(token);
     }
 
-    public UserDto register(RegisterUserRequest user) {
+    public User register(RegisterUserRequest user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        var savedUser = userRepository.save(userMapper.toEntity(user));
-        return userMapper.toDto(savedUser);
+        return userRepository.save(userMapper.toEntity(user));
     }
 }
