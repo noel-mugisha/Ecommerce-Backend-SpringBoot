@@ -20,7 +20,17 @@ public class JwtService {
     @Value("${spring.jwt.secret}")
     private String secret_key;
 
-    public String generateToken(User user) {
+    public String generateAccessToken(User user) {
+        final long tokenExpiration = 900; // 15min
+        return generateToken(user, tokenExpiration);
+    }
+
+    public String generateRefreshToken (User user) {
+        final long tokenExpiration = 604800; // 7days
+        return generateToken(user, tokenExpiration);
+    }
+
+    private String generateToken(User user, long tokenExpiration) {
         Map<String, String> claims = new HashMap<>();
         claims.put("name", user.getName());
         claims.put("email", user.getEmail());
@@ -29,7 +39,7 @@ public class JwtService {
                 .subject(user.getId().toString())
                 .claims(claims)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24hrs
+                .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
                 .signWith(getSigningKey())
                 .compact();
     }

@@ -9,6 +9,8 @@ import com.store.ecommercebackend.mappers.UserMapper;
 import com.store.ecommercebackend.repositories.UserRepository;
 import com.store.ecommercebackend.services.AuthService;
 import com.store.ecommercebackend.services.JwtService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +30,17 @@ public class AuthController {
     // Authenticate a user
     @PostMapping("/users/authenticate")
     public ResponseEntity<AuthResponse> authenticateUser(
-            @Valid @RequestBody LoginUserRequest request
+            @Valid @RequestBody LoginUserRequest request,
+            HttpServletResponse response
     ) {
+        // contains the access token
         var authResponse = authService.authenticate(request);
-        System.out.println(authResponse);
+        // generating refreshToken and its cookie
+        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        var refreshToken = jwtService.generateRefreshToken(user);
+        var cookie = generateCookie(refreshToken);
+        response.addCookie(cookie);
+
         return ResponseEntity.ok(authResponse);
     }
 
@@ -39,7 +48,8 @@ public class AuthController {
     @PostMapping("/users/register")
     public ResponseEntity<AuthResponse> registerUser(
             @Valid @RequestBody RegisterUserRequest request,
-            UriComponentsBuilder uriBuilder
+            UriComponentsBuilder uriBuilder,
+            HttpServletResponse response
     ) {
         if (userRepository.existsByEmail(request.getEmail()))
             throw new DuplicateEmailException("Email is already registered!..");
@@ -47,8 +57,14 @@ public class AuthController {
         var savedUser = authService.register(request);
         var uri = uriBuilder.path("/api/v1/auth/users/{id}").buildAndExpand(savedUser.getId())
                 .toUri();
-        var token = jwtService.generateToken(savedUser);
-        return ResponseEntity.created(uri).body(new AuthResponse(token));
+        // accessToken
+        var accessToken = jwtService.generateAccessToken(savedUser);
+        // refreshToken and its cookie
+        var refreshToken = jwtService.generateRefreshToken(savedUser);
+        var cookie = generateCookie(refreshToken);
+        response.addCookie(cookie);
+
+        return ResponseEntity.created(uri).body(new AuthResponse(accessToken));
     }
 
     // validate a token
@@ -62,5 +78,16 @@ public class AuthController {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         var user = userRepository.findById(userId).orElseThrow();
         return ResponseEntity.ok(userMapper.toDto(user));
+    }
+
+
+    // helper method for generating a cookie
+    private Cookie generateCookie (String refreshToken) {
+        var cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/auth/refresh");
+        cookie.setMaxAge(604800); // 7days
+        cookie.setSecure(true);
+        return cookie;
     }
 }
