@@ -14,6 +14,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -80,6 +81,19 @@ public class AuthController {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         var user = userRepository.findById(userId).orElseThrow();
         return ResponseEntity.ok(userMapper.toDto(user));
+    }
+
+    // refreshing accessTokens
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> getAccessToken (
+            @CookieValue(value = "refreshToken") String refreshToken
+    ) {
+        var userId = jwtService.extractSubject(refreshToken);
+        if (!jwtService.isTokenValid(refreshToken,userId))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        var user = userRepository.findById(userId).orElseThrow();
+        var accessToken = jwtService.generateAccessToken(user);
+        return ResponseEntity.ok(new AuthResponse(accessToken));
     }
 
 
