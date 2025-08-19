@@ -1,10 +1,12 @@
 package com.store.ecommercebackend.services;
 
+import com.store.ecommercebackend.config.JwtConfig;
 import com.store.ecommercebackend.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,18 +18,16 @@ import java.util.function.Function;
 
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
-    @Value("${spring.jwt.secret}")
-    private String secret_key;
+    private final JwtConfig jwtConfig;
 
     public String generateAccessToken(User user) {
-        final long tokenExpiration = 900; // 15min
-        return generateToken(user, tokenExpiration);
+        return generateToken(user, jwtConfig.getAccessTokenExpiration());
     }
 
     public String generateRefreshToken (User user) {
-        final long tokenExpiration = 604800; // 7days
-        return generateToken(user, tokenExpiration);
+        return generateToken(user, jwtConfig.getRefreshTokenExpiration());
     }
 
     private String generateToken(User user, long tokenExpiration) {
@@ -45,7 +45,7 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64URL.decode(secret_key);
+        byte[] keyBytes = Decoders.BASE64URL.decode(jwtConfig.getSecret());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 

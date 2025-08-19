@@ -1,5 +1,6 @@
 package com.store.ecommercebackend.controllers;
 
+import com.store.ecommercebackend.config.JwtConfig;
 import com.store.ecommercebackend.dto.request.LoginUserRequest;
 import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.response.AuthResponse;
@@ -26,6 +27,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final UserMapper userMapper;
+    private final JwtConfig jwtConfig;
 
     // Authenticate a user
     @PostMapping("/users/authenticate")
@@ -86,7 +88,7 @@ public class AuthController {
         var cookie = new Cookie("refreshToken", refreshToken);
         cookie.setHttpOnly(true);
         cookie.setPath("/auth/refresh");
-        cookie.setMaxAge(604800); // 7days
+        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
         cookie.setSecure(true);
         return cookie;
     }
