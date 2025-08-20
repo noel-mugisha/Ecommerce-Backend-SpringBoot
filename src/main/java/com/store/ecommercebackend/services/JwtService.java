@@ -7,9 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
@@ -22,19 +20,11 @@ import java.util.function.Function;
 public class JwtService {
     private final JwtConfig jwtConfig;
 
-    public String generateAccessToken(User user) {
-        return generateToken(user, jwtConfig.getAccessTokenExpiration());
-    }
-
-    public String generateRefreshToken (User user) {
-        return generateToken(user, jwtConfig.getRefreshTokenExpiration());
-    }
-
     private String generateToken(User user, long tokenExpiration) {
         Map<String, String> claims = new HashMap<>();
         claims.put("name", user.getName());
         claims.put("email", user.getEmail());
-
+        claims.put("role", user.getRole().name());
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claims(claims)
@@ -42,6 +32,14 @@ public class JwtService {
                 .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public String generateAccessToken(User user) {
+        return generateToken(user, jwtConfig.getAccessTokenExpiration());
+    }
+
+    public String generateRefreshToken(User user) {
+        return generateToken(user, jwtConfig.getRefreshTokenExpiration());
     }
 
     private SecretKey getSigningKey() {

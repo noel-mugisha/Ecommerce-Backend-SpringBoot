@@ -8,6 +8,7 @@ import com.store.ecommercebackend.dto.response.UserDto;
 import com.store.ecommercebackend.exceptions.DuplicateEmailException;
 import com.store.ecommercebackend.mappers.UserMapper;
 import com.store.ecommercebackend.repositories.UserRepository;
+import com.store.ecommercebackend.security.UserPrincipal;
 import com.store.ecommercebackend.services.AuthService;
 import com.store.ecommercebackend.services.JwtService;
 import jakarta.servlet.http.Cookie;
@@ -78,18 +79,18 @@ public class AuthController {
     // me
     @GetMapping("/me")
     public ResponseEntity<UserDto> me() {
-        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var user = userRepository.findById(userId).orElseThrow();
+        var userDetails = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var user = userRepository.findById(userDetails.getUserId()).orElseThrow();
         return ResponseEntity.ok(userMapper.toDto(user));
     }
 
     // refreshing accessTokens
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> getAccessToken (
+    public ResponseEntity<AuthResponse> getAccessToken(
             @CookieValue(value = "refreshToken") String refreshToken
     ) {
         var userId = jwtService.extractSubject(refreshToken);
-        if (!jwtService.isTokenValid(refreshToken,userId))
+        if (!jwtService.isTokenValid(refreshToken, userId))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         var user = userRepository.findById(userId).orElseThrow();
         var accessToken = jwtService.generateAccessToken(user);
@@ -98,10 +99,10 @@ public class AuthController {
 
 
     // helper method for generating a cookie
-    private Cookie generateCookie (String refreshToken) {
+    private Cookie generateCookie(String refreshToken) {
         var cookie = new Cookie("refreshToken", refreshToken);
         cookie.setHttpOnly(true);
-        cookie.setPath("/auth/refresh");
+        cookie.setPath("/api/v1/auth/refresh");
         cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
         cookie.setSecure(true);
         return cookie;

@@ -20,4 +20,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
         return new UserPrincipal(user);
     }
+
+    public UserDetails loadUserByUserId (Long id) {
+        var user = userRepository.findById(id).orElseThrow();
+        return new UserPrincipal(user);
+    }
 }

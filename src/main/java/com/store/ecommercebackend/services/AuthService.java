@@ -4,6 +4,7 @@ import com.store.ecommercebackend.dto.request.LoginUserRequest;
 import com.store.ecommercebackend.dto.request.RegisterUserRequest;
 import com.store.ecommercebackend.dto.response.AuthResponse;
 import com.store.ecommercebackend.entities.User;
+import com.store.ecommercebackend.enums.Role;
 import com.store.ecommercebackend.mappers.UserMapper;
 import com.store.ecommercebackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +32,10 @@ public class AuthService {
         return new AuthResponse(token);
     }
 
-    public User register(RegisterUserRequest user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(userMapper.toEntity(user));
+    public User register(RegisterUserRequest request) {
+        var user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.USER);
+        return userRepository.save(user);
     }
 }

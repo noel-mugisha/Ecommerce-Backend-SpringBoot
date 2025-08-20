@@ -1,5 +1,6 @@
 package com.store.ecommercebackend.filters;
 
+import com.store.ecommercebackend.services.CustomUserDetailsService;
 import com.store.ecommercebackend.services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +19,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
+    private final CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -29,10 +31,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         var jwt = bearerToken.substring(7);
         Long userId = jwtService.extractSubject(jwt);
+        var userDetails = userDetailsService.loadUserByUserId(userId);
 
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtService.isTokenValid(jwt, userId)) {
-                var authentication = new UsernamePasswordAuthenticationToken(userId, null, null);
+                var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
