@@ -1,6 +1,6 @@
 package com.store.ecommercebackend.enums;
 
-public enum Status {
+public enum OrderStatus {
     PENDING,
     PAID,
     FAILED,
