@@ -3,6 +3,7 @@ package com.store.ecommercebackend.exceptions;
 import com.store.ecommercebackend.dto.response.ApiErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
@@ -92,6 +93,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiErrorResponse> badCredentials(BadCredentialsException exception) {
         return getErrorResponse(HttpStatus.UNAUTHORIZED, exception);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnreadableData () {
+        var status = HttpStatus.BAD_REQUEST;
+        var errorResponse = ApiErrorResponse.builder()
+                .statusCode(status.value())
+                .errorReason(status.getReasonPhrase())
+                .message("Invalid request Body!...")
+                .build();
+        return new ResponseEntity<>(errorResponse, status);
     }
 
 }
