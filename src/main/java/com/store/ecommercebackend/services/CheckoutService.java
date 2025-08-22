@@ -44,6 +44,6 @@ public class CheckoutService {
             order.getOrderItems().add(orderItem);
         });
         var savedOrder = orderRepository.save(order);
-        return orderMapper.toDto(savedOrder);
+        return orderMapper.toCheckoutDto(savedOrder);
     }
 }

@@ -6,10 +6,7 @@ import com.store.ecommercebackend.services.CheckoutService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
@@ -19,6 +16,7 @@ public class CheckoutController {
 
     private final CheckoutService checkoutService;
 
+    // Checking out a cart && creating an order
     @PostMapping
     public ResponseEntity<CheckoutResponse> checkout (
             @Valid @RequestBody CheckoutRequest request,
@@ -28,4 +26,5 @@ public class CheckoutController {
         var uri = uriBuilder.path("/api/v1/orders/{id}").buildAndExpand(checkoutResponse.getOrderId()).toUri();
         return ResponseEntity.created(uri).body(checkoutResponse);
     }
+
 }
