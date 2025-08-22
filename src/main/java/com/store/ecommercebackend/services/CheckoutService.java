@@ -43,6 +43,8 @@ public class CheckoutService {
             orderItem.setUnitPrice(item.getProduct().getPrice());
             order.getOrderItems().add(orderItem);
         });
+        cart.clearCartItems();
+        cartRepository.save(cart);
         var savedOrder = orderRepository.save(order);
         return orderMapper.toCheckoutDto(savedOrder);
     }
