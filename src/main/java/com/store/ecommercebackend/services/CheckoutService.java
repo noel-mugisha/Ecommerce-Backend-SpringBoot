@@ -33,12 +33,16 @@ public class CheckoutService {
         );
         if (cart.getCartItems().isEmpty())
             throw new BadRequestException("Cart is empty!..");
+
         var user = authService.getCurrentUser();
+
+        // Create new order
         var order = new Order();
         order.setCustomer(user);
         order.setOrderStatus(OrderStatus.PENDING);
         order.setTotalPrice(cart.getTotalPrice());
 
+        // Build order items
         cart.getCartItems().forEach(item -> {
             var orderItem = new OrderItem();
             orderItem.setOrder(order);
@@ -49,17 +53,20 @@ public class CheckoutService {
             order.getOrderItems().add(orderItem);
         });
 
-        // Creating a Checkout session
+        var savedOrder = orderRepository.save(order);
+
         var builder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:3000/checkout-success?orderId=" + order.getId())
+                .setSuccessUrl("http://localhost:3000/checkout-success?orderId=" + savedOrder.getId())
                 .setCancelUrl("http://localhost:3000/checkout-cancel");
-        order.getOrderItems().forEach(item -> {
+
+        savedOrder.getOrderItems().forEach(item -> {
             var lineItem = SessionCreateParams.LineItem.builder()
                     .setQuantity(Long.valueOf(item.getQuantity()))
                     .setPriceData(
                             SessionCreateParams.LineItem.PriceData.builder()
                                     .setCurrency("usd")
+                                    // Stripe expects amounts in cents
                                     .setUnitAmountDecimal(item.getUnitPrice().multiply(BigDecimal.valueOf(100)))
                                     .setProductData(
                                             SessionCreateParams.LineItem.PriceData.ProductData.builder()
@@ -72,12 +79,14 @@ public class CheckoutService {
                     .build();
             builder.addLineItem(lineItem);
         });
+
         var session = Session.create(builder.build());
 
+        // Clear cart after creating checkout session
         cart.clearCartItems();
         cartRepository.save(cart);
-        var savedOrder = orderRepository.save(order);
-        return new CheckoutResponse(savedOrder.getId(), session.getUrl());
 
+        return new CheckoutResponse(savedOrder.getId(), session.getUrl());
     }
+
 }
