@@ -6,7 +6,6 @@ import com.store.ecommercebackend.entities.Order;
 import com.store.ecommercebackend.entities.OrderItem;
 import com.store.ecommercebackend.enums.OrderStatus;
 import com.store.ecommercebackend.exceptions.BadRequestException;
-import com.store.ecommercebackend.mappers.OrderMapper;
 import com.store.ecommercebackend.repositories.CartRepository;
 import com.store.ecommercebackend.repositories.OrderRepository;
 import com.stripe.exception.StripeException;
@@ -16,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Service
 @RequiredArgsConstructor
 public class CheckoutService {
@@ -23,7 +24,6 @@ public class CheckoutService {
     private final CartRepository cartRepository;
     private final AuthService authService;
     private final OrderRepository orderRepository;
-    private final OrderMapper orderMapper;
 
     // Checking out a cart & placing new order
     @Transactional
@@ -60,7 +60,7 @@ public class CheckoutService {
                     .setPriceData(
                             SessionCreateParams.LineItem.PriceData.builder()
                                     .setCurrency("usd")
-                                    .setUnitAmountDecimal(item.getUnitPrice())
+                                    .setUnitAmountDecimal(item.getUnitPrice().multiply(BigDecimal.valueOf(100)))
                                     .setProductData(
                                             SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                     .setName(item.getProduct().getName())
@@ -78,5 +78,6 @@ public class CheckoutService {
         cartRepository.save(cart);
         var savedOrder = orderRepository.save(order);
         return new CheckoutResponse(savedOrder.getId(), session.getUrl());
+
     }
 }
