@@ -9,8 +9,12 @@ import com.store.ecommercebackend.exceptions.BadRequestException;
 import com.store.ecommercebackend.mappers.OrderMapper;
 import com.store.ecommercebackend.repositories.CartRepository;
 import com.store.ecommercebackend.repositories.OrderRepository;
+import com.stripe.exception.StripeException;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +26,8 @@ public class CheckoutService {
     private final OrderMapper orderMapper;
 
     // Checking out a cart & placing new order
-    public CheckoutResponse checkout(CheckoutRequest request) {
+    @Transactional
+    public CheckoutResponse checkout(CheckoutRequest request) throws StripeException {
         var cart = cartRepository.findById(request.getCartId()).orElseThrow(() ->
                 new BadRequestException("The cart provided doesn't exist!..")
         );
@@ -43,9 +48,35 @@ public class CheckoutService {
             orderItem.setUnitPrice(item.getProduct().getPrice());
             order.getOrderItems().add(orderItem);
         });
+
+        // Creating a Checkout session
+        var builder = SessionCreateParams.builder()
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl("http://localhost:3000/checkout-success?orderId=" + order.getId())
+                .setCancelUrl("http://localhost:3000/checkout-cancel");
+        order.getOrderItems().forEach(item -> {
+            var lineItem = SessionCreateParams.LineItem.builder()
+                    .setQuantity(Long.valueOf(item.getQuantity()))
+                    .setPriceData(
+                            SessionCreateParams.LineItem.PriceData.builder()
+                                    .setCurrency("usd")
+                                    .setUnitAmountDecimal(item.getUnitPrice())
+                                    .setProductData(
+                                            SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                    .setName(item.getProduct().getName())
+                                                    .setDescription(item.getProduct().getDescription())
+                                                    .build()
+                                    )
+                                    .build()
+                    )
+                    .build();
+            builder.addLineItem(lineItem);
+        });
+        var session = Session.create(builder.build());
+
         cart.clearCartItems();
         cartRepository.save(cart);
         var savedOrder = orderRepository.save(order);
-        return orderMapper.toCheckoutDto(savedOrder);
+        return new CheckoutResponse(savedOrder.getId(), session.getUrl());
     }
 }

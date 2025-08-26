@@ -8,8 +8,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
-    @Mapping(target = "orderId", source = "id")
-    CheckoutResponse toCheckoutDto(Order order);
     @Mapping(target = "status", source = "orderStatus")
     OrderResponse toOrderDto(Order order);
 }
