@@ -1,6 +1,7 @@
 package com.store.ecommercebackend.payment;
 
 import com.store.ecommercebackend.entities.Order;
+import com.store.ecommercebackend.entities.OrderItem;
 import com.store.ecommercebackend.exceptions.PaymentException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
@@ -19,22 +20,7 @@ public class StripePaymentGateway implements PaymentGateway{
                 .setCancelUrl("http://localhost:3000/checkout-cancel");
 
         order.getOrderItems().forEach(item -> {
-            var lineItem = SessionCreateParams.LineItem.builder()
-                    .setQuantity(Long.valueOf(item.getQuantity()))
-                    .setPriceData(
-                            SessionCreateParams.LineItem.PriceData.builder()
-                                    .setCurrency("usd")
-                                    // Stripe expects amounts in cents
-                                    .setUnitAmountDecimal(item.getUnitPrice().multiply(BigDecimal.valueOf(100)))
-                                    .setProductData(
-                                            SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                    .setName(item.getProduct().getName())
-                                                    .setDescription(item.getProduct().getDescription())
-                                                    .build()
-                                    )
-                                    .build()
-                    )
-                    .build();
+            var lineItem = createLineItem(item);
             builder.addLineItem(lineItem);
         });
 
@@ -45,5 +31,28 @@ public class StripePaymentGateway implements PaymentGateway{
             System.out.println(e.getMessage());
             throw new PaymentException("Error creating checkout session, try again later...");
         }
+    }
+
+    private SessionCreateParams.LineItem createLineItem(OrderItem item) {
+        return SessionCreateParams.LineItem.builder()
+                .setQuantity((long) item.getQuantity())
+                .setPriceData(createPriceData(item))
+                .build();
+    }
+
+    private SessionCreateParams.LineItem.PriceData createPriceData(OrderItem item) {
+        return SessionCreateParams.LineItem.PriceData.builder()
+                .setCurrency("usd")
+                // Stripe expects amounts in cents
+                .setUnitAmountDecimal(item.getUnitPrice().multiply(BigDecimal.valueOf(100)))
+                .setProductData(createProductData(item))
+                .build();
+    }
+
+    private SessionCreateParams.LineItem.PriceData.ProductData createProductData(OrderItem item) {
+        return SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                .setName(item.getProduct().getName())
+                .setDescription(item.getProduct().getDescription())
+                .build();
     }
 }
