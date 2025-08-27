@@ -95,6 +95,11 @@ public class GlobalExceptionHandler {
         return getErrorResponse(HttpStatus.UNAUTHORIZED, exception);
     }
 
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<ApiErrorResponse> handlePaymentException (PaymentException exception) {
+        return getErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception);
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleUnreadableData () {
         var status = HttpStatus.BAD_REQUEST;

@@ -6,16 +6,12 @@ import com.store.ecommercebackend.entities.Order;
 import com.store.ecommercebackend.entities.OrderItem;
 import com.store.ecommercebackend.enums.OrderStatus;
 import com.store.ecommercebackend.exceptions.BadRequestException;
+import com.store.ecommercebackend.payment.PaymentGateway;
 import com.store.ecommercebackend.repositories.CartRepository;
 import com.store.ecommercebackend.repositories.OrderRepository;
-import com.stripe.exception.StripeException;
-import com.stripe.model.checkout.Session;
-import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +20,11 @@ public class CheckoutService {
     private final CartRepository cartRepository;
     private final AuthService authService;
     private final OrderRepository orderRepository;
+    private final PaymentGateway paymentGateway;
 
     // Checking out a cart & placing new order
     @Transactional
-    public CheckoutResponse checkout(CheckoutRequest request) throws StripeException {
+    public CheckoutResponse checkout(CheckoutRequest request) {
         var cart = cartRepository.findById(request.getCartId()).orElseThrow(() ->
                 new BadRequestException("The cart provided doesn't exist!..")
         );
@@ -42,7 +39,6 @@ public class CheckoutService {
         order.setOrderStatus(OrderStatus.PENDING);
         order.setTotalPrice(cart.getTotalPrice());
 
-        // Build order items
         cart.getCartItems().forEach(item -> {
             var orderItem = new OrderItem();
             orderItem.setOrder(order);
@@ -55,38 +51,14 @@ public class CheckoutService {
 
         var savedOrder = orderRepository.save(order);
 
-        var builder = SessionCreateParams.builder()
-                .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:3000/checkout-success?orderId=" + savedOrder.getId())
-                .setCancelUrl("http://localhost:3000/checkout-cancel");
-
-        savedOrder.getOrderItems().forEach(item -> {
-            var lineItem = SessionCreateParams.LineItem.builder()
-                    .setQuantity(Long.valueOf(item.getQuantity()))
-                    .setPriceData(
-                            SessionCreateParams.LineItem.PriceData.builder()
-                                    .setCurrency("usd")
-                                    // Stripe expects amounts in cents
-                                    .setUnitAmountDecimal(item.getUnitPrice().multiply(BigDecimal.valueOf(100)))
-                                    .setProductData(
-                                            SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                    .setName(item.getProduct().getName())
-                                                    .setDescription(item.getProduct().getDescription())
-                                                    .build()
-                                    )
-                                    .build()
-                    )
-                    .build();
-            builder.addLineItem(lineItem);
-        });
-
-        var session = Session.create(builder.build());
+        // Generate checkout session
+        var checkoutSession = paymentGateway.createCheckoutSession(savedOrder);
 
         // Clear cart after creating checkout session
         cart.clearCartItems();
         cartRepository.save(cart);
 
-        return new CheckoutResponse(savedOrder.getId(), session.getUrl());
+        return new CheckoutResponse(savedOrder.getId(), checkoutSession.getCheckoutUrl());
     }
 
 }
