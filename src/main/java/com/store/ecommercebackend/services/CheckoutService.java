@@ -7,6 +7,7 @@ import com.store.ecommercebackend.entities.OrderItem;
 import com.store.ecommercebackend.enums.OrderStatus;
 import com.store.ecommercebackend.exceptions.BadRequestException;
 import com.store.ecommercebackend.payment.PaymentGateway;
+import com.store.ecommercebackend.payment.WebhookRequest;
 import com.store.ecommercebackend.repositories.CartRepository;
 import com.store.ecommercebackend.repositories.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -61,4 +62,12 @@ public class CheckoutService {
         return new CheckoutResponse(savedOrder.getId(), checkoutSession.getCheckoutUrl());
     }
 
+    public void handleWebhookEvent(WebhookRequest request) {
+        paymentGateway.parseWebhookRequest(request)
+                .ifPresent(paymentResult -> {
+                    var order = orderRepository.findById(paymentResult.getOrderId()).orElseThrow();
+                    order.setOrderStatus(paymentResult.getPaymentStatus());
+                    orderRepository.save(order);
+                });
+    }
 }
