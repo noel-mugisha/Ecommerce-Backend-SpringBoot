@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.store</groupId>
     <artifactId>Ecommerce-Backend</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>Ecommerce-Backend</name>
     <description>Ecommerce-Backend</description>
     <url/>
@@ -27,7 +27,7 @@
         <url/>
     </scm>
     <properties>
-        <java.version>24</java.version>
+        <java.version>17</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -118,6 +118,11 @@
             <groupId>com.stripe</groupId>
             <artifactId>stripe-java</artifactId>
             <version>29.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
         </dependency>
     </dependencies>
 

@@ -1,5 +1,5 @@
 
-# Application properties for the project
+# Application Dev properties for the project
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/ecom_store_db
