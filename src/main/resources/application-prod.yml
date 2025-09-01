@@ -1,0 +1,11 @@
+
+# Application properties for the project
+spring:
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+

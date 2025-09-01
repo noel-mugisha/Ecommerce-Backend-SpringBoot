@@ -1,0 +1,17 @@
+
+# Application properties for the project
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ecom_store_db
+    username: postgres
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format-sql: true
+
