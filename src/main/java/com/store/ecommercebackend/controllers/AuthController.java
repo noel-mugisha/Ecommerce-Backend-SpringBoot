@@ -42,7 +42,7 @@ public class AuthController {
         // generating refreshToken and its cookie
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
         var refreshToken = jwtService.generateRefreshToken(user);
-        var cookie = generateCookie(refreshToken);
+        var cookie = generateRefreshTokenCookie(refreshToken);
         response.addCookie(cookie);
 
         return ResponseEntity.ok(authResponse);
@@ -65,7 +65,7 @@ public class AuthController {
         var accessToken = jwtService.generateAccessToken(savedUser);
         // refreshToken and its cookie
         var refreshToken = jwtService.generateRefreshToken(savedUser);
-        var cookie = generateCookie(refreshToken);
+        var cookie = generateRefreshTokenCookie(refreshToken);
         response.addCookie(cookie);
 
         return ResponseEntity.created(uri).body(new AuthResponse(accessToken));
@@ -99,7 +99,7 @@ public class AuthController {
 
 
     // helper method for generating a cookie
-    private Cookie generateCookie(String refreshToken) {
+    private Cookie generateRefreshTokenCookie(String refreshToken) {
         var cookie = new Cookie("refreshToken", refreshToken);
         cookie.setHttpOnly(true);
         cookie.setPath("/api/v1/auth/refresh");
