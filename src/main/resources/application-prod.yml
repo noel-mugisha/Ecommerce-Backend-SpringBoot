@@ -2,7 +2,10 @@
 # Application Prod properties for the project
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
+    url: ${PROD_DB_URL}
+    username: ${PROD_DB_USERNAME}
+    password: ${PROD_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
